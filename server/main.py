@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 from .database import engine, Base
 from .routers import projects, likes, follows, sync, score
 
@@ -21,9 +23,14 @@ app.include_router(follows.router)
 app.include_router(sync.router)
 app.include_router(score.router)
 
-@app.get("/")
+FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+
+@app.get("/", response_class=FileResponse)
 def root():
-    return {"status": "ok", "message": "Behance Curator API"}
+    index = os.path.join(FRONTEND_DIR, "index.html")
+    if os.path.exists(index):
+        return FileResponse(index)
+    return {"status": "ok"}
 
 @app.get("/health")
 def health():
