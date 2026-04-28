@@ -16,14 +16,19 @@ def get_or_create_tag(db: Session, name: str) -> models.Tag:
 @router.get("/", response_model=list[schemas.ProjectOut])
 def list_projects(
     category: str | None = None,
+    sort: str = "recent",
     skip: int = 0,
-    limit: int = 50,
+    limit: int = 200,
     db: Session = Depends(get_db)
 ):
     q = db.query(models.Project)
     if category:
         q = q.filter(models.Project.category == category)
-    return q.order_by(models.Project.score.desc()).offset(skip).limit(limit).all()
+    if sort == "score":
+        q = q.order_by(models.Project.score.desc(), models.Project.created_at.desc())
+    else:
+        q = q.order_by(models.Project.created_at.desc(), models.Project.score.desc())
+    return q.offset(skip).limit(limit).all()
 
 @router.get("/{project_id}", response_model=schemas.ProjectOut)
 def get_project(project_id: int, db: Session = Depends(get_db)):
@@ -55,14 +60,6 @@ def create_project(data: schemas.ProjectCreate, db: Session = Depends(get_db)):
     db.refresh(project)
     return project
 
-@router.delete("/{project_id}", status_code=204)
-def delete_project(project_id: int, db: Session = Depends(get_db)):
-    project = db.query(models.Project).get(project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    db.delete(project)
-    db.commit()
-
 @router.patch("/{project_id}", response_model=schemas.ProjectOut)
 def patch_project(project_id: int, data: schemas.ProjectPatch, db: Session = Depends(get_db)):
     project = db.query(models.Project).get(project_id)
@@ -86,3 +83,11 @@ def patch_project(project_id: int, data: schemas.ProjectPatch, db: Session = Dep
     db.commit()
     db.refresh(project)
     return project
+
+@router.delete("/{project_id}", status_code=204)
+def delete_project(project_id: int, db: Session = Depends(get_db)):
+    project = db.query(models.Project).get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    db.delete(project)
+    db.commit()
