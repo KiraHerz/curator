@@ -62,3 +62,27 @@ def delete_project(project_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Project not found")
     db.delete(project)
     db.commit()
+
+@router.patch("/{project_id}", response_model=schemas.ProjectOut)
+def patch_project(project_id: int, data: schemas.ProjectPatch, db: Session = Depends(get_db)):
+    project = db.query(models.Project).get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if data.cover_url is not None:
+        project.cover_url = data.cover_url
+    if data.category is not None:
+        project.category = data.category
+    if data.score is not None:
+        project.score = data.score
+    if data.tags is not None:
+        project.tags = []
+        for tag_name in data.tags:
+            tag = db.query(models.Tag).filter_by(name=tag_name.lower().strip()).first()
+            if not tag:
+                tag = models.Tag(name=tag_name.lower().strip())
+                db.add(tag)
+                db.flush()
+            project.tags.append(tag)
+    db.commit()
+    db.refresh(project)
+    return project
