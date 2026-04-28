@@ -62,3 +62,9 @@ class FollowOut(BaseModel):
     level: int
     added_at: datetime
     model_config = {"from_attributes": True}
+
+class ProjectPatch(BaseModel):
+    cover_url: Optional[str] = None
+    tags: Optional[list[str]] = None
+    category: Optional[str] = None
+    score: Optional[float] = None
