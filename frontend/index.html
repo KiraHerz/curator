@@ -15,7 +15,7 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
 .fb{font-family:'DM Sans',sans-serif;font-size:9px;padding:2px 7px;border-radius:20px;border:0.5px solid #bbb;background:#fff;color:#111;cursor:pointer;transition:background 0.15s;}
 .fb:hover{background:#f0f0f0;}
 .fb.active{background:#111!important;color:#fff!important;border-color:#111!important;}
-.sort{font-size:9px;color:#999;font-family:'DM Mono',monospace;font-style:italic;flex-shrink:0;}
+.sort-toggle{display:flex;gap:2px;flex-shrink:0;}.sort-btn{font-family:"DM Mono",monospace;font-size:9px;color:#aaa;background:transparent;border:none;cursor:pointer;padding:2px 5px;transition:color 0.15s;font-style:italic;}.sort-btn:hover{color:#111;}.sort-btn.active{color:#111;text-decoration:underline;}.sort-x{font-size:9px;color:#999;font-family:'DM Mono',monospace;font-style:italic;flex-shrink:0;}
 .legend{display:flex;align-items:center;justify-content:space-between;padding:7px 20px;border-bottom:0.5px solid #e0e0e0;background:#fff;}
 .li-group{display:flex;gap:12px;}
 .li{display:flex;align-items:center;gap:4px;font-size:9px;color:#aaa;font-family:'DM Mono',monospace;}
@@ -82,7 +82,7 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
     <button class="fb" data-cat="branding">Branding</button>
     <button class="fb" data-cat="poster">Posters</button>
   </div>
-  <span class="sort">by score</span>
+  <div class="sort-toggle"><button class="sort-btn active" data-sort="recent">recent</button><button class="sort-btn" data-sort="score">by score</button></div>
 </div>
 
 <div class="legend">
@@ -126,7 +126,7 @@ const CATS=['ux-ui','mobile','branding','poster'];
 
 let projects=[];
 let liked=new Set();
-let cat='';
+let cat='';let sort='recent';
 let showModal=false;
 
 function ph(id){const i=id%FILLS.length;const[c1,c2]=FILLS[i];return`<div class="ph" style="background:linear-gradient(135deg,${c1},${c2})"></div>`;}
@@ -135,7 +135,7 @@ function iniFrom(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).t
 async function loadProjects(){
   document.getElementById('status-text').textContent='loading…';
   try{
-    const url=cat?`${API}/projects/?category=${cat}&limit=200`:`${API}/projects/?limit=200`;
+    const url=cat?`${API}/projects/?category=${cat}&sort=${sort}&limit=200`:`${API}/projects/?sort=${sort}&limit=200`;
     const r=await fetch(url);
     projects=await r.json();
     document.getElementById('status-text').textContent=`${projects.length} projects`;
@@ -244,3 +244,13 @@ loadProjects();
 </script>
 </body>
 </html>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.sort-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.sort-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    sort = b.dataset.sort;
+    loadProjects();
+  }));
+});
+</script>
