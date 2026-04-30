@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Curator</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -15,7 +14,10 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
 .fb{font-family:'DM Sans',sans-serif;font-size:9px;padding:2px 7px;border-radius:20px;border:0.5px solid #bbb;background:#fff;color:#111;cursor:pointer;transition:background 0.15s;}
 .fb:hover{background:#f0f0f0;}
 .fb.active{background:#111!important;color:#fff!important;border-color:#111!important;}
-.sort-toggle{display:flex;gap:2px;flex-shrink:0;}.sort-btn{font-family:"DM Mono",monospace;font-size:9px;color:#aaa;background:transparent;border:none;cursor:pointer;padding:2px 5px;transition:color 0.15s;font-style:italic;}.sort-btn:hover{color:#111;}.sort-btn.active{color:#111;text-decoration:underline;}.sort-x{font-size:9px;color:#999;font-family:'DM Mono',monospace;font-style:italic;flex-shrink:0;}
+.sort-toggle{display:flex;gap:6px;flex-shrink:0;}
+.sort-btn{font-family:'DM Mono',monospace;font-size:9px;color:#bbb;background:transparent;border:none;cursor:pointer;padding:0;transition:color 0.15s;font-style:italic;}
+.sort-btn:hover{color:#666;}
+.sort-btn.active{color:#111;text-decoration:underline;}
 .legend{display:flex;align-items:center;justify-content:space-between;padding:7px 20px;border-bottom:0.5px solid #e0e0e0;background:#fff;}
 .li-group{display:flex;gap:12px;}
 .li{display:flex;align-items:center;gap:4px;font-size:9px;color:#aaa;font-family:'DM Mono',monospace;}
@@ -31,9 +33,8 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
 .add-btn:hover{background:#f0f0f0;}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:0.5px solid #e0e0e0;}
 @media(max-width:600px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-.card{background:#fff;cursor:pointer;border-right:0.5px solid #e0e0e0;border-bottom:0.5px solid #e0e0e0;transition:background 0.15s;}
+.card{background:#fff;border-right:0.5px solid #e0e0e0;border-bottom:0.5px solid #e0e0e0;transition:background 0.15s;}
 .card:nth-child(3n){border-right:none;}
-@media(max-width:600px){.card:nth-child(3n){border-right:0.5px solid #e0e0e0;}.card:nth-child(2n){border-right:none;}}
 .card:hover{background:#f0f0f0;}
 .card:hover .tag{background:#e4e4e4;}
 .img-wrap{width:100%;aspect-ratio:3/2;overflow:hidden;position:relative;background:#f5f5f5;}
@@ -41,11 +42,16 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
 .card:hover .ph{transform:scale(1.03);}
 .cover-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s ease;}
 .card:hover .cover-img{transform:scale(1.03);}
-.overlay{position:absolute;inset:0;opacity:0;transition:opacity 0.2s;display:flex;align-items:flex-end;padding:8px;}
+.overlay{position:absolute;inset:0;opacity:0;transition:opacity 0.2s;display:flex;align-items:flex-end;padding:8px;gap:6px;}
 .img-wrap:hover .overlay{opacity:1;}
-.lbtn{width:26px;height:26px;border-radius:50%;background:#fff;border:0.5px solid #ccc;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;margin-left:auto;}
-.lbtn svg{width:12px;height:12px;pointer-events:none;}
+.lbtn,.delbtn,.editbtn{width:26px;height:26px;border-radius:50%;background:#fff;border:0.5px solid #ccc;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+.lbtn svg,.delbtn svg,.editbtn svg{width:11px;height:11px;pointer-events:none;}
+.lbtn{margin-left:auto;}
 .lbtn.liked{background:#f04040;border-color:#f04040;}
+.delbtn:hover{background:#f04040;border-color:#f04040;}
+.delbtn:hover svg path{stroke:#fff;}
+.editbtn:hover{background:#111;border-color:#111;}
+.editbtn:hover svg path,.editbtn:hover svg rect{stroke:#fff;}
 .body{padding:9px 11px 11px;}
 .meta{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
 .ava{width:15px;height:15px;border-radius:50%;background:#eee;border:0.5px solid #ddd;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:500;color:#666;}
@@ -58,17 +64,39 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
 .blink{font-size:9px;color:#bbb;text-decoration:none;font-family:'DM Mono',monospace;letter-spacing:0.04em;transition:color 0.15s;}
 .blink:hover{color:#111;}
 .loading{padding:60px 20px;text-align:center;font-size:11px;color:#bbb;font-family:'DM Mono',monospace;grid-column:1/-1;}
+
+/* modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.15);z-index:100;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
-.modal{background:#fff;border:0.5px solid #ddd;border-radius:8px;padding:20px 22px;width:280px;}
+.modal{background:#fff;border:0.5px solid #ddd;border-radius:8px;padding:20px 22px;width:300px;}
 .modal-title{font-size:11px;font-weight:500;color:#111;margin-bottom:14px;}
 .mf{margin-bottom:8px;}
 .mf label{display:block;font-size:9px;color:#999;font-family:'DM Mono',monospace;margin-bottom:3px;}
-.mf input{width:100%;font-family:'DM Mono',monospace;font-size:9px;color:#555;background:#efefef;border:none;border-radius:4px;padding:6px 9px;outline:none;}
-.mf input:focus{background:#e5e5e5;}
+.mf input,.mf select{width:100%;font-family:'DM Mono',monospace;font-size:9px;color:#555;background:#efefef;border:none;border-radius:4px;padding:6px 9px;outline:none;}
+.mf input:focus,.mf select:focus{background:#e5e5e5;}
 .modal-actions{display:flex;gap:6px;margin-top:14px;}
 .btn-cancel{font-family:'DM Sans',sans-serif;font-size:9px;color:#666;background:#fff;border:0.5px solid #ccc;border-radius:4px;padding:6px 10px;cursor:pointer;flex:1;}
 .btn-save{font-family:'DM Sans',sans-serif;font-size:9px;color:#fff;background:#111;border:0.5px solid #111;border-radius:4px;padding:6px 10px;cursor:pointer;flex:1;}
+
+/* edit panel */
+.edit-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.15);z-index:100;align-items:center;justify-content:center;}
+.edit-overlay.open{display:flex;}
+.edit-panel{background:#fff;border:0.5px solid #ddd;border-radius:8px;padding:20px 22px;width:320px;}
+.edit-title{font-size:11px;font-weight:500;color:#111;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.edit-sub{font-size:9px;color:#bbb;font-family:'DM Mono',monospace;margin-bottom:14px;}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;min-height:24px;}
+.tag-chip{display:flex;align-items:center;gap:3px;font-size:9px;color:#555;background:#f0f0f0;border-radius:3px;padding:2px 6px;font-family:'DM Mono',monospace;}
+.tag-chip button{background:none;border:none;cursor:pointer;color:#bbb;font-size:11px;line-height:1;padding:0;}
+.tag-chip button:hover{color:#f04040;}
+.tag-add-row{display:flex;gap:6px;margin-bottom:12px;}
+.tag-input{flex:1;font-family:'DM Mono',monospace;font-size:9px;color:#555;background:#efefef;border:none;border-radius:4px;padding:5px 9px;outline:none;}
+.tag-input:focus{background:#e5e5e5;}
+.tag-add-btn{font-family:'DM Sans',sans-serif;font-size:9px;color:#111;background:#fff;border:0.5px solid #ccc;border-radius:4px;padding:5px 10px;cursor:pointer;white-space:nowrap;}
+.tag-add-btn:hover{background:#f0f0f0;}
+.cat-row{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;}
+.cat-chip{font-size:9px;padding:2px 8px;border-radius:20px;border:0.5px solid #ccc;background:#fff;color:#666;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.cat-chip:hover{background:#f0f0f0;}
+.cat-chip.active{background:#111;color:#fff;border-color:#111;}
 </style>
 </head>
 <body>
@@ -82,7 +110,10 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
     <button class="fb" data-cat="branding">Branding</button>
     <button class="fb" data-cat="poster">Posters</button>
   </div>
-  <div class="sort-toggle"><button class="sort-btn active" data-sort="recent">recent</button><button class="sort-btn" data-sort="score">by score</button></div>
+  <div class="sort-toggle" id="sort-toggle">
+    <button class="sort-btn active" data-sort="published">recent</button>
+    <button class="sort-btn" data-sort="score">by score</button>
+  </div>
 </div>
 
 <div class="legend">
@@ -104,13 +135,21 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
   <div class="loading">loading projects…</div>
 </div>
 
+<!-- add modal -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <div class="modal-title">Add project from Behance</div>
     <div class="mf"><label>url</label><input id="m-url" type="text" placeholder="https://behance.net/gallery/…"/></div>
     <div class="mf"><label>title</label><input id="m-title" type="text" placeholder="Project title"/></div>
     <div class="mf"><label>author</label><input id="m-author" type="text" placeholder="Designer name"/></div>
-    <div class="mf"><label>category</label><input id="m-cat" type="text" placeholder="ux-ui / mobile / branding / poster"/></div>
+    <div class="mf"><label>category</label>
+      <select id="m-cat">
+        <option value="ux-ui">UX / UI</option>
+        <option value="mobile">Mobile</option>
+        <option value="branding">Branding</option>
+        <option value="poster">Poster</option>
+      </select>
+    </div>
     <div class="mf"><label>tags (comma separated)</label><input id="m-tags" type="text" placeholder="ui, mobile, ios"/></div>
     <div class="modal-actions">
       <button class="btn-cancel" id="m-cancel">Cancel</button>
@@ -119,54 +158,103 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
   </div>
 </div>
 
+<!-- edit panel -->
+<div class="edit-overlay" id="edit-overlay">
+  <div class="edit-panel">
+    <div class="edit-title" id="ep-title"></div>
+    <div class="edit-sub" id="ep-sub"></div>
+    <div class="mf"><label>category</label>
+      <div class="cat-row" id="ep-cats">
+        <button class="cat-chip" data-cat="ux-ui">UX / UI</button>
+        <button class="cat-chip" data-cat="mobile">Mobile</button>
+        <button class="cat-chip" data-cat="branding">Branding</button>
+        <button class="cat-chip" data-cat="poster">Poster</button>
+      </div>
+    </div>
+    <div class="mf"><label>tags</label>
+      <div class="tags-wrap" id="ep-tags"></div>
+      <div class="tag-add-row">
+        <input class="tag-input" id="ep-tag-input" type="text" placeholder="add tag…"/>
+        <button class="tag-add-btn" id="ep-tag-add">Add</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="ep-cancel">Cancel</button>
+      <button class="btn-save" id="ep-save">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const API='';
-const FILLS=[['#ebe5dd','#ddd6cc'],['#c8d8e2','#b6c8d4'],['#dce1c7','#cdd2b4'],['#e0ccd8','#d0b8c6'],['#d6d3e2','#c4c0d2'],['#e2d8cb','#d2c8b7'],['#cce0d8','#b8d0c8'],['#e2d0c8','#d2bdb6'],['#ccd8e2','#b8c8d2'],['#eae4ce','#dad4ba'],['#dce8d8','#c8d8c4'],['#e8d8c8','#d8c8b4']];
-const CATS=['ux-ui','mobile','branding','poster'];
+const API = '';
+const FILLS = [['#ebe5dd','#ddd6cc'],['#c8d8e2','#b6c8d4'],['#dce1c7','#cdd2b4'],['#e0ccd8','#d0b8c6'],['#d6d3e2','#c4c0d2'],['#e2d8cb','#d2c8b7'],['#cce0d8','#b8d0c8'],['#e2d0c8','#d2bdb6'],['#ccd8e2','#b8c8d2'],['#eae4ce','#dad4ba'],['#dce8d8','#c8d8c4'],['#e8d8c8','#d8c8b4']];
+const CATS = ['ux-ui','mobile','branding','poster'];
+const LIMIT = 50;
 
-let projects=[];
-let liked=new Set();
-let cat='';let sort='recent';
-let showModal=false;
+let projects = [];
+let liked = new Set();
+let cat = '';
+let sort = 'published';
+let offset = 0;
+let loading = false;
+let hasMore = true;
+let editProject = null;
+let editTags = [];
 
-function ph(id){const i=id%FILLS.length;const[c1,c2]=FILLS[i];return`<div class="ph" style="background:linear-gradient(135deg,${c1},${c2})"></div>`;}
-function iniFrom(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+function ph(id){const[c1,c2]=FILLS[id%FILLS.length];return`<div class="ph" style="background:linear-gradient(135deg,${c1},${c2})"></div>`;}
+function ini(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
 
-async function loadProjects(){
-  document.getElementById('status-text').textContent='loading…';
+async function loadProjects(reset=true){
+  if(loading) return;
+  if(reset){projects=[];offset=0;hasMore=true;}
+  if(!hasMore) return;
+  loading=true;
+  if(reset) document.getElementById('status-text').textContent='loading…';
   try{
-    const url=cat?`${API}/projects/?category=${cat}&sort=${sort}&limit=200`:`${API}/projects/?sort=${sort}&limit=200`;
-    const r=await fetch(url);
-    projects=await r.json();
-    document.getElementById('status-text').textContent=`${projects.length} projects`;
-    const likesR=await fetch(`${API}/likes/`);
-    const likesData=await likesR.json();
-    liked=new Set(likesData.map(l=>l.project_id));
-    render();
+    const params=new URLSearchParams({limit:LIMIT,skip:offset,sort});
+    if(cat) params.set('category',cat);
+    const r=await fetch(`${API}/projects/?${params}`);
+    const batch=await r.json();
+    if(reset){
+      const lr=await fetch(`${API}/likes/`);
+      liked=new Set((await lr.json()).map(l=>l.project_id));
+    }
+    projects=[...projects,...batch];
+    offset+=batch.length;
+    hasMore=batch.length===LIMIT;
+    document.getElementById('status-text').textContent=`${projects.length}${hasMore?'+':''} projects`;
+    if(reset){render();}else{appendCards(batch);}
   }catch(e){
-    document.getElementById('status-text').textContent='error loading';
-    document.getElementById('grid').innerHTML='<div class="loading">failed to load projects</div>';
+    document.getElementById('status-text').textContent='error';
+    if(reset) document.getElementById('grid').innerHTML='<div class="loading">failed to load</div>';
   }
+  loading=false;
 }
 
 function card(p){
   const lk=liked.has(p.id);
   const cover=p.cover_url
-    ?`<img class="cover-img" src="${p.cover_url}" loading="lazy" onerror="this.style.display='none';this.parentNode.style.background='linear-gradient(135deg,${FILLS[p.id%FILLS.length][0]},${FILLS[p.id%FILLS.length][1]})';">`
+    ?`<img class="cover-img" src="${p.cover_url}" loading="lazy" onerror="this.style.display='none'">`
     :ph(p.id);
   const tags=(p.tags||[]).map(t=>`<span class="tag">${t.name||t}</span>`).join('');
-  return`<div class="card">
+  return`<div class="card" data-id="${p.id}">
     <div class="img-wrap">
       ${cover}
       <div class="overlay">
-        <button class="lbtn${lk?' liked':''}" data-id="${p.id}">
+        <button class="delbtn" data-id="${p.id}" title="Delete">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="#666" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="editbtn" data-id="${p.id}" title="Edit tags">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-8 8H3v-3l8-8z" stroke="#666" stroke-width="1" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="lbtn${lk?' liked':''}" data-id="${p.id}" title="Like">
           <svg viewBox="0 0 16 16" fill="none"><path d="M8 13.5S2 9.5 2 5.5C2 3.6 3.6 2 5.5 2c1 0 2 .5 2.5 1.3C8.5 2.5 9.5 2 10.5 2c1.9 0 3.5 1.6 3.5 3.5 0 4-6 8-6 8z" stroke="${lk?'#fff':'#666'}" stroke-width="1" fill="${lk?'#fff':'none'}"/></svg>
         </button>
       </div>
     </div>
     <div class="body">
       <div class="meta">
-        <div class="ava">${iniFrom(p.author_name)}</div>
+        <div class="ava">${ini(p.author_name)}</div>
         <span class="author">${p.author_name||''}</span>
         <span class="score-num">${Math.round(p.score||0)}</span>
       </div>
@@ -180,44 +268,156 @@ function card(p){
   </div>`;
 }
 
+function bindEvents(){
+  const g=document.getElementById('grid');
+  g.querySelectorAll('.lbtn').forEach(b=>{
+    if(b._bound) return; b._bound=true;
+    b.addEventListener('click',async e=>{
+      e.stopPropagation();
+      const id=+b.dataset.id;
+      if(liked.has(id)){
+        await fetch(`${API}/likes/${id}`,{method:'DELETE'});
+        liked.delete(id);
+      }else{
+        await fetch(`${API}/likes/`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({project_id:id,source:'manual'})});
+        liked.add(id);
+      }
+      b.classList.toggle('liked',liked.has(id));
+      const path=b.querySelector('path');
+      path.setAttribute('stroke',liked.has(id)?'#fff':'#666');
+      path.setAttribute('fill',liked.has(id)?'#fff':'none');
+    });
+  });
+  g.querySelectorAll('.delbtn').forEach(b=>{
+    if(b._bound) return; b._bound=true;
+    b.addEventListener('click',async e=>{
+      e.stopPropagation();
+      if(!confirm('Remove this project?')) return;
+      await fetch(`${API}/projects/${b.dataset.id}`,{method:'DELETE'});
+      projects=projects.filter(p=>p.id!==+b.dataset.id);
+      render();
+    });
+  });
+  g.querySelectorAll('.editbtn').forEach(b=>{
+    if(b._bound) return; b._bound=true;
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      const p=projects.find(x=>x.id===+b.dataset.id);
+      if(p) openEditPanel(p);
+    });
+  });
+}
+
 function render(){
   const g=document.getElementById('grid');
   if(!projects.length){g.innerHTML='<div class="loading">no projects yet</div>';return;}
   g.innerHTML=projects.map(card).join('');
-  g.querySelectorAll('.lbtn').forEach(b=>b.addEventListener('click',async e=>{
-    e.stopPropagation();
-    const id=+b.dataset.id;
-    if(liked.has(id)){
-      await fetch(`${API}/likes/${id}`,{method:'DELETE'});
-      liked.delete(id);
-    }else{
-      await fetch(`${API}/likes/`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({project_id:id,source:'manual'})});
-      liked.add(id);
-    }
-    render();
+  bindEvents();
+}
+
+function appendCards(batch){
+  const g=document.getElementById('grid');
+  const tmp=document.createElement('div');
+  tmp.innerHTML=batch.map(card).join('');
+  while(tmp.firstChild) g.appendChild(tmp.firstChild);
+  bindEvents();
+}
+
+// infinite scroll
+const observer=new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting && !loading && hasMore) loadProjects(false);
+},{rootMargin:'200px'});
+const sentinel=document.createElement('div');
+sentinel.id='sentinel';
+document.getElementById('grid').after(sentinel);
+observer.observe(sentinel);
+
+// edit panel
+function openEditPanel(p){
+  editProject=p;
+  editTags=(p.tags||[]).map(t=>t.name||t);
+  document.getElementById('ep-title').textContent=p.title;
+  document.getElementById('ep-sub').textContent=p.author_name;
+  document.querySelectorAll('.cat-chip').forEach(c=>c.classList.toggle('active',c.dataset.cat===p.category));
+  renderEditTags();
+  document.getElementById('ep-tag-input').value='';
+  document.getElementById('edit-overlay').classList.add('open');
+}
+
+function renderEditTags(){
+  const wrap=document.getElementById('ep-tags');
+  wrap.innerHTML=editTags.map(t=>`<span class="tag-chip">${t}<button data-tag="${t}" title="remove">×</button></span>`).join('');
+  wrap.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    editTags=editTags.filter(t=>t!==b.dataset.tag);
+    renderEditTags();
   }));
 }
 
+document.getElementById('ep-cats').addEventListener('click',e=>{
+  const c=e.target.closest('.cat-chip');
+  if(!c) return;
+  document.querySelectorAll('.cat-chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');
+});
+
+document.getElementById('ep-tag-add').addEventListener('click',()=>{
+  const input=document.getElementById('ep-tag-input');
+  const val=input.value.trim().toLowerCase();
+  if(val&&!editTags.includes(val)){editTags.push(val);renderEditTags();}
+  input.value='';
+});
+
+document.getElementById('ep-tag-input').addEventListener('keydown',e=>{
+  if(e.key!=='Enter') return;
+  const val=e.target.value.trim().toLowerCase();
+  if(val&&!editTags.includes(val)){editTags.push(val);renderEditTags();}
+  e.target.value='';
+});
+
+document.getElementById('ep-cancel').onclick=()=>document.getElementById('edit-overlay').classList.remove('open');
+document.getElementById('edit-overlay').onclick=e=>{if(e.target===e.currentTarget)e.target.classList.remove('open');};
+
+document.getElementById('ep-save').onclick=async()=>{
+  const activeCat=document.querySelector('.cat-chip.active')?.dataset.cat;
+  await fetch(`${API}/projects/${editProject.id}`,{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({tags:editTags,category:activeCat||editProject.category})
+  });
+  document.getElementById('edit-overlay').classList.remove('open');
+  await loadProjects();
+};
+
+// filters & sort
 document.getElementById('filters').addEventListener('click',e=>{
   const b=e.target.closest('.fb');
-  if(!b)return;
+  if(!b) return;
   document.querySelectorAll('.fb').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
   cat=b.dataset.cat;
   loadProjects();
 });
 
+document.getElementById('sort-toggle').addEventListener('click',e=>{
+  const b=e.target.closest('.sort-btn');
+  if(!b) return;
+  document.querySelectorAll('.sort-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  sort=b.dataset.sort;
+  loadProjects();
+});
+
+// add modal
 document.getElementById('add-btn').onclick=()=>{
   document.getElementById('m-url').value=document.getElementById('url-input').value.trim();
   document.getElementById('url-input').value='';
   document.getElementById('modal-overlay').classList.add('open');
 };
 document.getElementById('url-input').addEventListener('keydown',e=>{
-  if(e.key==='Enter'){
-    document.getElementById('m-url').value=e.target.value.trim();
-    e.target.value='';
-    document.getElementById('modal-overlay').classList.add('open');
-  }
+  if(e.key!=='Enter') return;
+  document.getElementById('m-url').value=e.target.value.trim();
+  e.target.value='';
+  document.getElementById('modal-overlay').classList.add('open');
 });
 document.getElementById('m-cancel').onclick=()=>document.getElementById('modal-overlay').classList.remove('open');
 document.getElementById('modal-overlay').onclick=e=>{if(e.target===e.currentTarget)e.target.classList.remove('open');};
@@ -226,17 +426,17 @@ document.getElementById('m-save').onclick=async()=>{
   const url=document.getElementById('m-url').value.trim();
   const title=document.getElementById('m-title').value.trim()||'Untitled';
   const author=document.getElementById('m-author').value.trim()||'Unknown';
-  const rawCat=document.getElementById('m-cat').value.trim().toLowerCase();
-  const validCat=CATS.includes(rawCat)?rawCat:'ux-ui';
+  const c=document.getElementById('m-cat').value;
   const tags=document.getElementById('m-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
   const idMatch=url.match(/gallery\/(\d+)/);
-  const behanceId=idMatch?idMatch[1]:`manual-${Date.now()}`;
   await fetch(`${API}/projects/`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-    behance_id:behanceId,title,url,cover_url:null,
+    behance_id:idMatch?idMatch[1]:`manual-${Date.now()}`,
+    title,url,cover_url:null,
     author_name:author,author_id:author.toLowerCase().replace(/\s/g,'-'),
-    category:validCat,tags,is_manual:true
+    category:c,tags,is_manual:true
   })});
   document.getElementById('modal-overlay').classList.remove('open');
+  ['m-url','m-title','m-author','m-tags'].forEach(id=>document.getElementById(id).value='');
   await loadProjects();
 };
 
@@ -244,13 +444,3 @@ loadProjects();
 </script>
 </body>
 </html>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.sort-btn').forEach(b => b.addEventListener('click', () => {
-    document.querySelectorAll('.sort-btn').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    sort = b.dataset.sort;
-    loadProjects();
-  }));
-});
-</script>
