@@ -16,7 +16,7 @@ def get_or_create_tag(db: Session, name: str) -> models.Tag:
 @router.get("/", response_model=list[schemas.ProjectOut])
 def list_projects(
     category: str | None = None,
-    sort: str = "recent",
+    sort: str = "published",
     skip: int = 0,
     limit: int = 200,
     db: Session = Depends(get_db)
@@ -25,9 +25,11 @@ def list_projects(
     if category:
         q = q.filter(models.Project.category == category)
     if sort == "score":
-        q = q.order_by(models.Project.score.desc(), models.Project.created_at.desc())
+        q = q.order_by(models.Project.score.desc(), models.Project.published_at.desc())
+    elif sort == "published":
+        q = q.order_by(models.Project.published_at.desc().nullslast(), models.Project.created_at.desc())
     else:
-        q = q.order_by(models.Project.created_at.desc(), models.Project.score.desc())
+        q = q.order_by(models.Project.created_at.desc())
     return q.offset(skip).limit(limit).all()
 
 @router.get("/{project_id}", response_model=schemas.ProjectOut)
@@ -71,6 +73,10 @@ def patch_project(project_id: int, data: schemas.ProjectPatch, db: Session = Dep
         project.category = data.category
     if data.score is not None:
         project.score = data.score
+    if data.published_at is not None:
+        project.published_at = data.published_at
+    if data.awards is not None:
+        project.awards = data.awards
     if data.tags is not None:
         project.tags = []
         for tag_name in data.tags:
