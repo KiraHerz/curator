@@ -31,10 +31,10 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
 .add-input:focus{background:#e5e5e5;}
 .add-btn{font-family:'DM Sans',sans-serif;font-size:9px;color:#666;background:#fff;border:0.5px solid #ccc;border-radius:4px;padding:5px 10px;cursor:pointer;white-space:nowrap;transition:background 0.15s;flex-shrink:0;}
 .add-btn:hover{background:#f0f0f0;}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:0.5px solid #e0e0e0;}
-@media(max-width:600px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-.card{background:#fff;border-right:0.5px solid #e0e0e0;border-bottom:0.5px solid #e0e0e0;transition:background 0.15s;}
-.card:nth-child(3n){border-right:none;}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:0.5px solid #e0e0e0;}
+@media(max-width:900px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));}}@media(max-width:600px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.card{background:#fff;border-right:0.5px solid #e0e0e0;border-bottom:0.5px solid #e0e0e0;transition:background 0.15s;cursor:pointer;}
+.card:nth-child(5n){border-right:none;}.card:nth-child(3n){border-right:0.5px solid #e0e0e0;}
 .card:hover{background:#f0f0f0;}
 .card:hover .tag{background:#e4e4e4;}
 .img-wrap{width:100%;aspect-ratio:3/2;overflow:hidden;position:relative;background:#f5f5f5;}
@@ -270,6 +270,14 @@ function card(p){
 
 function bindEvents(){
   const g=document.getElementById('grid');
+  g.querySelectorAll('.card').forEach(card=>{
+    if(card._bound) return; card._bound=true;
+    card.addEventListener('click',e=>{
+      if(e.target.closest('.lbtn,.delbtn,.editbtn,.overlay')) return;
+      const p=projects.find(x=>x.id===+card.dataset.id);
+      if(p&&p.url) window.open(p.url,'_blank');
+    });
+  });
   g.querySelectorAll('.lbtn').forEach(b=>{
     if(b._bound) return; b._bound=true;
     b.addEventListener('click',async e=>{
@@ -278,9 +286,19 @@ function bindEvents(){
       if(liked.has(id)){
         await fetch(`${API}/likes/${id}`,{method:'DELETE'});
         liked.delete(id);
+        await fetch(`${API}/score/recalculate`,{method:'POST'});
+        sort='score';
+        document.querySelectorAll('.sort-btn').forEach(x=>x.classList.remove('active'));
+        document.querySelector('.sort-btn[data-sort="score"]').classList.add('active');
+        setTimeout(()=>loadProjects(), 1500);
       }else{
         await fetch(`${API}/likes/`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({project_id:id,source:'manual'})});
         liked.add(id);
+        await fetch(`${API}/score/recalculate`,{method:'POST'});
+        sort='score';
+        document.querySelectorAll('.sort-btn').forEach(x=>x.classList.remove('active'));
+        document.querySelector('.sort-btn[data-sort="score"]').classList.add('active');
+        setTimeout(()=>loadProjects(), 1500);
       }
       b.classList.toggle('liked',liked.has(id));
       const path=b.querySelector('path');
