@@ -63,7 +63,7 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
 .foot{display:flex;align-items:center;justify-content:space-between;}
 .blink{font-size:9px;color:#bbb;text-decoration:none;font-family:'DM Mono',monospace;letter-spacing:0.04em;transition:color 0.15s;}
 .blink:hover{color:#111;}
-.loading{padding:60px 20px;text-align:center;font-size:11px;color:#bbb;font-family:'DM Mono',monospace;grid-column:1/-1;}
+.year-bar::-webkit-scrollbar{display:none;}.yb{font-family:"DM Mono",monospace;font-size:9px;padding:2px 7px;border-radius:20px;border:0.5px solid #e0e0e0;background:#fff;color:#aaa;cursor:pointer;white-space:nowrap;transition:all 0.15s;}.yb:hover{background:#f0f0f0;color:#111;}.yb.active{background:#111;color:#fff;border-color:#111;}.loading{padding:60px 20px;text-align:center;font-size:11px;color:#bbb;font-family:'DM Mono',monospace;grid-column:1/-1;}
 
 /* modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.15);z-index:100;align-items:center;justify-content:center;}
@@ -125,6 +125,7 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
   <span class="status-text" id="status-text">loading…</span>
 </div>
 
+<div class="year-bar" id="year-bar" style="display:flex;gap:3px;flex-wrap:wrap;padding:7px 20px;border-bottom:0.5px solid #e0e0e0;overflow-x:auto;"></div>
 <div class="add-bar">
   <span class="add-label">+ add</span>
   <input class="add-input" id="url-input" type="text" placeholder="behance.net/gallery/…"/>
@@ -200,6 +201,7 @@ let loading = false;
 let hasMore = true;
 let editProject = null;
 let editTags = [];
+let yearFilter = '';
 
 function ph(id){const[c1,c2]=FILLS[id%FILLS.length];return`<div class="ph" style="background:linear-gradient(135deg,${c1},${c2})"></div>`;}
 function ini(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
@@ -213,6 +215,7 @@ async function loadProjects(reset=true){
   try{
     const params=new URLSearchParams({limit:LIMIT,skip:offset,sort});
     if(cat) params.set('category',cat);
+    if(yearFilter) params.set('year',yearFilter);
     const r=await fetch(`${API}/projects/?${params}`);
     const batch=await r.json();
     if(reset){
@@ -223,7 +226,10 @@ async function loadProjects(reset=true){
     offset+=batch.length;
     hasMore=batch.length===LIMIT;
     document.getElementById('status-text').textContent=`${projects.length}${hasMore?'+':''} projects`;
-    if(reset){render();}else{appendCards(batch);}
+    if(reset){
+      if(offset===LIMIT) buildYearBar();
+      render();
+    }else{appendCards(batch);}
   }catch(e){
     document.getElementById('status-text').textContent='error';
     if(reset) document.getElementById('grid').innerHTML='<div class="loading">failed to load</div>';
@@ -256,7 +262,7 @@ function card(p){
       <div class="meta">
         <div class="ava">${ini(p.author_name)}</div>
         <span class="author">${p.author_name||''}</span>
-        <span class="score-num">${Math.round(p.score||0)}</span>
+        <span class="score-num">${p.published_at?new Date(p.published_at).getFullYear():''}${p.published_at&&p.score?' · ':''}${p.score?Math.round(p.score):''}</span>
       </div>
       <div class="title">${p.title||'Untitled'}</div>
       ${tags?`<div class="tags">${tags}</div>`:''}
@@ -266,6 +272,24 @@ function card(p){
       </div>
     </div>
   </div>`;
+}
+
+function buildYearBar(){
+  // collect years from loaded projects
+  const allYears = new Set(projects.map(p=>p.published_at?new Date(p.published_at).getFullYear():null).filter(Boolean));
+  const years = [...allYears].sort((a,b)=>b-a);
+  const bar = document.getElementById('year-bar');
+  if(!years.length){bar.style.display='none';return;}
+  bar.style.display='flex';
+  bar.innerHTML = ['<button class="yb active" data-year="">All years</button>',
+    ...years.map(y=>`<button class="yb" data-year="${y}">${y}</button>`)
+  ].join('');
+  bar.querySelectorAll('.yb').forEach(b=>b.addEventListener('click',()=>{
+    bar.querySelectorAll('.yb').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    yearFilter=b.dataset.year;
+    loadProjects();
+  }));
 }
 
 function bindEvents(){
