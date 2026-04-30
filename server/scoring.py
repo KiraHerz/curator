@@ -12,6 +12,11 @@ W_SOCIAL    = 25.0
 W_FOLLOW1   = 25.0
 W_FOLLOW2   = 10.0
 
+# awards bonuses (added on top, max 100)
+AWARD_ADOBE     = 25.0
+AWARD_FEATURED  = 15.0
+AWARD_APPRECIATED = 10.0
+
 # time decay thresholds
 DECAY_90  = 0.5   # likes older than 90 days
 DECAY_180 = 0.2   # likes older than 180 days
@@ -101,10 +106,20 @@ def score_project(
     elif project.author_id in lvl2:
         social_score += W_FOLLOW2
 
+    # 4. awards bonus
+    award_bonus = 0.0
+    if project.awards == "adobe_award":
+        award_bonus = AWARD_ADOBE
+    elif project.awards == "featured":
+        award_bonus = AWARD_FEATURED
+    elif project.awards == "appreciated":
+        award_bonus = AWARD_APPRECIATED
+
     raw = tag_score + designer_score + social_score
-    # normalise to 0-100
+    # normalise to 0-100, then add award bonus on top
     max_possible = W_TAGS + W_DESIGNER + W_FOLLOW1
-    return round(min(raw / max_possible * 100, 100), 1)
+    base = raw / max_possible * 100
+    return round(min(base + award_bonus, 100), 1)
 
 def recalculate_all(db: Session) -> dict:
     """
