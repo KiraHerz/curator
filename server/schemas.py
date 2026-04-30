@@ -19,6 +19,7 @@ class ProjectCreate(BaseModel):
     category: str
     tags: list[str] = []
     published_at: Optional[datetime] = None
+    awards: Optional[str] = None
     is_manual: bool = False
 
 class ProjectOut(BaseModel):
@@ -32,6 +33,7 @@ class ProjectOut(BaseModel):
     category: str
     score: float
     is_manual: bool
+    awards: Optional[str] = None
     published_at: Optional[datetime]
     created_at: datetime
     tags: list[TagOut] = []
@@ -68,3 +70,5 @@ class ProjectPatch(BaseModel):
     tags: Optional[list[str]] = None
     category: Optional[str] = None
     score: Optional[float] = None
+    published_at: Optional[datetime] = None
+    awards: Optional[str] = None
