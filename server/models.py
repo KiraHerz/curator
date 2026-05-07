@@ -20,6 +20,8 @@ class Project(Base):
     category     = Column(String)
     score        = Column(Float, default=0)
     is_manual    = Column(Boolean, default=False)
+    awards       = Column(String, nullable=True)  # "featured", "adobe_award", "appreciated" or None
+    slides       = Column(String, nullable=True)  # JSON array of slide URLs
     published_at = Column(DateTime)
     created_at   = Column(DateTime, default=datetime.utcnow)
     tags         = relationship("Tag", secondary=project_tags, back_populates="projects")
