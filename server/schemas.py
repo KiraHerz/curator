@@ -34,6 +34,7 @@ class ProjectOut(BaseModel):
     score: float
     is_manual: bool
     awards: Optional[str] = None
+    slides: Optional[str] = None
     published_at: Optional[datetime]
     created_at: datetime
     tags: list[TagOut] = []
