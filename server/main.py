@@ -5,11 +5,24 @@ from fastapi.responses import FileResponse
 import os
 from .database import engine, Base
 from .routers import projects, likes, follows, sync, score
- 
+
 Base.metadata.create_all(bind=engine)
- 
+
+# run migrations for new columns
+from sqlalchemy import text
+with engine.connect() as conn:
+    for col, typ in [
+        ("awards", "TEXT"),
+        ("slides", "TEXT"),
+    ]:
+        try:
+            conn.execute(text(f"ALTER TABLE projects ADD COLUMN IF NOT EXISTS {col} {typ}"))
+            conn.commit()
+        except Exception:
+            conn.rollback()
+
 app = FastAPI(title="Behance Curator", version="0.1.0")
- 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,22 +31,22 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=True,
 )
- 
+
 app.include_router(projects.router)
 app.include_router(likes.router)
 app.include_router(follows.router)
 app.include_router(sync.router)
 app.include_router(score.router)
- 
+
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
- 
+
 @app.get("/", response_class=FileResponse)
 def root():
     index = os.path.join(FRONTEND_DIR, "index.html")
     if os.path.exists(index):
         return FileResponse(index)
     return {"status": "ok"}
- 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
