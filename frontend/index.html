@@ -565,9 +565,28 @@ document.getElementById('m-save').onclick=async()=>{
   await loadProjects();
 };
 
+let searchTimer=null;
 document.getElementById('search-input').addEventListener('input', e=>{
   searchQuery = e.target.value.trim().toLowerCase();
-  render();
+  clearTimeout(searchTimer);
+  if(searchQuery.length===0){
+    loadProjects();
+    return;
+  }
+  if(searchQuery.length<2) return;
+  searchTimer=setTimeout(async()=>{
+    loading=true;
+    try{
+      const params=new URLSearchParams({limit:100,search:searchQuery});
+      const r=await fetch(`${API}/projects/?${params}`);
+      projects=await r.json();
+      document.getElementById('status-text').textContent=`${projects.length} found`;
+      shownIds=new Set(projects.map(p=>p.id));
+      hasMore=false;
+      render();
+    }catch(e){}
+    loading=false;
+  }, 300);
 });
 
 loadProjects();
