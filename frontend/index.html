@@ -441,12 +441,18 @@ async function openPreview(p){
     const r=await fetch(p.url,{credentials:'include'});
     const html=await r.text();
 
-    // deduplicate by base filename, prefer 1400px size
+    // deduplicate by base filename, prefer 1400 non-webp size
     const allUrls=[...html.matchAll(/https:\/\/mir-s3-cdn-cf\.behance\.net\/project_modules\/[^\s"']+\.(?:jpg|jpeg|png)/gi)].map(m=>m[0]);
     const seen=new Map();
+    const priority=url=>{
+      if(url.includes('/1400/')) return 3;
+      if(url.includes('/max_1200/')) return 2;
+      if(url.includes('/1400_webp/')) return 1;
+      return 0;
+    };
     for(const url of allUrls){
       const base=url.split('/').pop().replace(/\.[^.]+$/,'');
-      if(!seen.has(base)||url.includes('/1400')||url.includes('/max_1200')){
+      if(!seen.has(base)||priority(url)>priority(seen.get(base))){
         seen.set(base,url);
       }
     }
