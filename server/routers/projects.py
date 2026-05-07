@@ -81,6 +81,8 @@ def patch_project(project_id: int, data: schemas.ProjectPatch, db: Session = Dep
         project.published_at = data.published_at
     if data.awards is not None:
         project.awards = data.awards
+    if data.slides is not None:
+        project.slides = data.slides
     if data.tags is not None:
         project.tags = []
         for tag_name in data.tags:
