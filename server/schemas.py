@@ -73,3 +73,4 @@ class ProjectPatch(BaseModel):
     score: Optional[float] = None
     published_at: Optional[datetime] = None
     awards: Optional[str] = None
+    slides: Optional[str] = None
