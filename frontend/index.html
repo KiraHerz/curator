@@ -14,6 +14,9 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
 .fb{font-family:'DM Sans',sans-serif;font-size:9px;padding:2px 7px;border-radius:20px;border:0.5px solid #bbb;background:#fff;color:#111;cursor:pointer;transition:background 0.15s;}
 .fb:hover{background:#f0f0f0;}
 .fb.active{background:#111!important;color:#fff!important;border-color:#111!important;}
+.search-input{font-family:'DM Mono',monospace;font-size:9px;color:#555;background:#f0f0f0;border:none;border-radius:4px;padding:4px 10px;outline:none;width:140px;transition:all 0.15s;}
+.search-input::placeholder{color:#bbb;}
+.search-input:focus{background:#e8e8e8;width:180px;}
 .sort-toggle{display:flex;gap:6px;flex-shrink:0;}
 .sort-btn{font-family:'DM Mono',monospace;font-size:9px;color:#bbb;background:transparent;border:none;cursor:pointer;padding:0;transition:color 0.15s;font-style:italic;}
 .sort-btn:hover{color:#666;}
@@ -138,6 +141,7 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:#111;}
     <button class="fb" data-cat="branding">Branding</button>
     <button class="fb" data-cat="poster">Posters</button>
   </div>
+  <input class="search-input" id="search-input" type="text" placeholder="search…"/>
   <div class="sort-toggle" id="sort-toggle">
     <button class="sort-btn active" data-sort="published">recent</button>
     <button class="sort-btn" data-sort="score">by score</button>
@@ -254,6 +258,7 @@ let shownIds = new Set();
 let editProject = null;
 let editTags = [];
 let yearFilter = '';
+let searchQuery = '';
 
 function ph(id){const[c1,c2]=FILLS[id%FILLS.length];return`<div class="ph" style="background:linear-gradient(135deg,${c1},${c2})"></div>`;}
 function ini(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
@@ -402,8 +407,11 @@ function bindEvents(){
 
 function render(){
   const g=document.getElementById('grid');
-  if(!projects.length){g.innerHTML='<div class="loading">no projects yet</div>';return;}
-  g.innerHTML=projects.map(card).join('');
+  const filtered=searchQuery
+    ?projects.filter(p=>(p.title||'').toLowerCase().includes(searchQuery)||(p.author_name||'').toLowerCase().includes(searchQuery))
+    :projects;
+  if(!filtered.length){g.innerHTML='<div class="loading">no projects found</div>';return;}
+  g.innerHTML=filtered.map(card).join('');
   bindEvents();
 }
 
@@ -541,12 +549,14 @@ document.getElementById('m-save').onclick=async()=>{
   const c=document.getElementById('m-cat').value;
   const tags=document.getElementById('m-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
   const idMatch=url.match(/gallery\/(\d+)/);
-  await fetch(`${API}/projects/`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+  const res=await fetch(`${API}/projects/`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     behance_id:idMatch?idMatch[1]:`manual-${Date.now()}`,
     title,url,cover_url:null,
     author_name:author,author_id:author.toLowerCase().replace(/\s/g,'-'),
-    category:c,tags,is_manual:true
+    category:c,tags,is_manual:true,
+    published_at:new Date().toISOString()
   })});
+  console.log('Add result:', res.status);
   document.getElementById('modal-overlay').classList.remove('open');
   ['m-url','m-title','m-author','m-tags'].forEach(id=>document.getElementById(id).value='');
   sort='published';
@@ -554,6 +564,11 @@ document.getElementById('m-save').onclick=async()=>{
   document.querySelector('.sort-btn[data-sort="published"]').classList.add('active');
   await loadProjects();
 };
+
+document.getElementById('search-input').addEventListener('input', e=>{
+  searchQuery = e.target.value.trim().toLowerCase();
+  render();
+});
 
 loadProjects();
 </script>
