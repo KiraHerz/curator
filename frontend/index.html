@@ -461,7 +461,6 @@ async function openPreview(p){
     }
   }catch(e){
     document.getElementById('preview-slides').innerHTML=p.cover_url?`<img src="${p.cover_url}" style="width:100%;display:block;">`:'<div class="preview-slides-loading">could not load slides</div>';
-  }">`:'<div class="preview-slides-loading">could not load slides</div>';
   }
 }
 
@@ -567,6 +566,9 @@ document.getElementById('m-save').onclick=async()=>{
   })});
   document.getElementById('modal-overlay').classList.remove('open');
   ['m-url','m-title','m-author','m-tags'].forEach(id=>document.getElementById(id).value='');
+  sort='published';
+  document.querySelectorAll('.sort-btn').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.sort-btn[data-sort="published"]').classList.add('active');
   await loadProjects();
 };
 
