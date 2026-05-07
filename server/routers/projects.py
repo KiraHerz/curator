@@ -18,6 +18,7 @@ def list_projects(
     category: str | None = None,
     sort: str = "published",
     year: int | None = None,
+    search: str | None = None,
     skip: int = 0,
     limit: int = 200,
     db: Session = Depends(get_db)
@@ -28,6 +29,11 @@ def list_projects(
         q = q.filter(models.Project.category == category)
     if year:
         q = q.filter(extract('year', models.Project.published_at) == year)
+    if search:
+        q = q.filter(
+            models.Project.title.ilike(f'%{search}%') |
+            models.Project.author_name.ilike(f'%{search}%')
+        )
     if sort == "score":
         q = q.order_by(models.Project.score.desc(), models.Project.published_at.desc())
     elif sort == "published":
