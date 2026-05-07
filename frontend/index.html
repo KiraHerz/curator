@@ -440,20 +440,28 @@ async function openPreview(p){
   try{
     const r=await fetch(p.url,{credentials:'include'});
     const html=await r.text();
-    const imgs=[...new Set([
-      ...[...html.matchAll(/https:\/\/mir-s3-cdn-cf\.behance\.net\/project_modules\/[^\s"']+\.(?:jpg|jpeg|png|webp)/gi)].map(m=>m[0]),
-      ...[...html.matchAll(/https:\/\/mir-s3-cdn-cf\.behance\.net\/projects\/[^\s"']+\.(?:jpg|jpeg|png|webp)/gi)].map(m=>m[0]),
-    ])].filter(u=>!u.includes('avatar')&&!u.includes('profile')).slice(0,8);
+
+    // deduplicate by base filename, prefer 1400px size
+    const allUrls=[...html.matchAll(/https:\/\/mir-s3-cdn-cf\.behance\.net\/project_modules\/[^\s"']+\.(?:jpg|jpeg|png)/gi)].map(m=>m[0]);
+    const seen=new Map();
+    for(const url of allUrls){
+      const base=url.split('/').pop().replace(/\.[^.]+$/,'');
+      if(!seen.has(base)||url.includes('/1400')||url.includes('/max_1200')){
+        seen.set(base,url);
+      }
+    }
+    const imgs=[...seen.values()].filter(u=>!u.includes('avatar')&&!u.includes('profile')&&!u.includes('user')).slice(0,8);
 
     if(imgs.length){
-      document.getElementById('preview-slides').innerHTML=imgs.map(u=>`<img src="${u}" loading="lazy">`).join('');
+      document.getElementById('preview-slides').innerHTML=imgs.map(u=>`<img src="${u}" loading="lazy" style="width:100%;display:block;margin-bottom:2px;">`).join('');
     }else if(p.cover_url){
-      document.getElementById('preview-slides').innerHTML=`<img src="${p.cover_url}">`;
+      document.getElementById('preview-slides').innerHTML=`<img src="${p.cover_url}" style="width:100%;display:block;">`;
     }else{
-      document.getElementById('preview-slides').innerHTML=`<div style="height:200px;${ph(p.id).slice(10,-6)}"></div>`;
+      document.getElementById('preview-slides').innerHTML='<div class="preview-slides-loading">no slides found</div>';
     }
   }catch(e){
-    document.getElementById('preview-slides').innerHTML=p.cover_url?`<img src="${p.cover_url}">`:'<div class="preview-slides-loading">could not load slides</div>';
+    document.getElementById('preview-slides').innerHTML=p.cover_url?`<img src="${p.cover_url}" style="width:100%;display:block;">`:'<div class="preview-slides-loading">could not load slides</div>';
+  }">`:'<div class="preview-slides-loading">could not load slides</div>';
   }
 }
 
